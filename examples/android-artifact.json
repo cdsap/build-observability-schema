@@ -1,0 +1,32 @@
+{
+  "$schema": "../schema/report.schema.json",
+  "schemaVersion": "1.0.0",
+  "resource": {
+    "build.tool.name": "gradle"
+  },
+  "observations": [
+    {
+      "schemaVersion": "1.0.0",
+      "producer": {
+        "name": "android-artifacts-size-report",
+        "version": "0.2.1"
+      },
+      "scope": "build.artifact",
+      "aggregationScope": "entity",
+      "attributes": {
+        "gradle.project.path": ":app",
+        "android.variant.name": "debug",
+        "artifact.name": "app-debug.apk",
+        "artifact.type": "apk"
+      },
+      "measurements": [
+        {
+          "name": "build.artifact.size",
+          "value": 7000096,
+          "unit": "By",
+          "aggregation": "last"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "$schema": "../schema/report.schema.json",
+  "schemaVersion": "1.0.0",
+  "resource": {
+    "build.tool.name": "gradle"
+  },
+  "observations": [
+    {
+      "schemaVersion": "1.0.0",
+      "producer": {
+        "name": "info-test-process",
+        "version": "2.1.0"
+      },
+      "scope": "jvm.process",
+      "aggregationScope": "entity",
+      "attributes": {
+        "process.pid": 13402,
+        "jvm.process.role": "test-worker",
+        "gradle.task.path": ":core:domain:testDemoDebugUnitTest",
+        "gradle.test.executor": "Gradle Test Executor 5",
+        "jvm.gc.name": "G1"
+      },
+      "measurements": [
+        { "name": "jvm.process.memory.heap.limit", "value": 536870912, "unit": "By", "aggregation": "last" },
+        { "name": "jvm.process.uptime", "value": 1.2, "unit": "s", "aggregation": "last" },
+        { "name": "jvm.process.cpu.time", "value": 3.05, "unit": "s", "aggregation": "sum" },
+        { "name": "jvm.process.cpu.cores", "value": 3.31, "unit": "{core}", "aggregation": "last" },
+        { "name": "jvm.process.memory.heap.used", "value": 150323855, "unit": "By", "aggregation": "last" },
+        { "name": "jvm.process.memory.heap.peak", "value": 150323855, "unit": "By", "aggregation": "max" },
+        { "name": "jvm.process.memory.metaspace.peak", "value": 15246295, "unit": "By", "aggregation": "max" },
+        { "name": "jvm.process.gc.collections", "value": 2, "unit": "{collection}", "aggregation": "count" },
+        { "name": "jvm.process.gc.time", "value": 0, "unit": "s", "aggregation": "sum" },
+        { "name": "jvm.process.jit.time", "value": 2.28, "unit": "s", "aggregation": "sum" },
+        { "name": "jvm.process.classes.loaded", "value": 3503, "unit": "{class}", "aggregation": "last" },
+        { "name": "jvm.process.threads.peak", "value": 10, "unit": "{thread}", "aggregation": "max" }
+      ]
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "producer": {
+        "name": "info-test-process",
+        "version": "2.1.0"
+      },
+      "scope": "jvm.process",
+      "aggregationScope": "build",
+      "attributes": {
+        "jvm.process.role": "test-worker"
+      },
+      "measurements": [
+        { "name": "jvm.process.cpu.cores", "value": 3.31, "unit": "{core}", "aggregation": "max" },
+        { "name": "jvm.process.cpu.time", "value": 3.05, "unit": "s", "aggregation": "sum" },
+        { "name": "jvm.process.memory.heap.peak", "value": 150323855, "unit": "By", "aggregation": "max" },
+        { "name": "jvm.process.gc.collections", "value": 2, "unit": "{collection}", "aggregation": "sum" }
+      ]
+    }
+  ]
+}

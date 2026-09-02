@@ -1,0 +1,8 @@
+# Changelog
+
+## 1.0.0-draft.1
+
+- Define the observation and report contracts.
+- Define the Develocity custom-value projection and scalar index convention.
+- Register metrics and attributes used by the five initial Gradle plugins.
+- Add examples, migration mappings, query recipes, and semantic validation.

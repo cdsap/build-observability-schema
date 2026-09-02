@@ -1,0 +1,55 @@
+{
+  "$schema": "../schema/report.schema.json",
+  "schemaVersion": "1.0.0",
+  "resource": {
+    "build.tool.name": "gradle"
+  },
+  "observations": [
+    {
+      "schemaVersion": "1.0.0",
+      "producer": {
+        "name": "info-gradle-process",
+        "version": "0.3.1"
+      },
+      "scope": "jvm.process",
+      "aggregationScope": "entity",
+      "attributes": {
+        "process.pid": 10865,
+        "jvm.process.role": "gradle-daemon",
+        "jvm.gc.name": "G1"
+      },
+      "measurements": [
+        {
+          "name": "jvm.process.memory.heap.limit",
+          "value": 1073741824,
+          "unit": "By",
+          "aggregation": "last"
+        },
+        {
+          "name": "jvm.process.memory.heap.used",
+          "value": 708669604,
+          "unit": "By",
+          "aggregation": "last"
+        },
+        {
+          "name": "jvm.process.memory.heap.committed",
+          "value": 1073741824,
+          "unit": "By",
+          "aggregation": "last"
+        },
+        {
+          "name": "jvm.process.gc.time",
+          "value": 0,
+          "unit": "s",
+          "aggregation": "sum"
+        },
+        {
+          "name": "jvm.process.uptime",
+          "value": 0,
+          "unit": "s",
+          "aggregation": "last"
+        }
+      ]
+    }
+  ]
+}

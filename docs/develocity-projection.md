@@ -1,0 +1,83 @@
+# Develocity projection
+
+Develocity custom values are strings, while GBOS observations contain typed
+values. The projection keeps the canonical observation intact and adds only a
+small, explicit set of scalar indexes for frequent filters.
+
+## Canonical custom value
+
+Emit each compact observation as:
+
+```text
+name  = gbos.v1.observation
+value = <compact JSON observation>
+```
+
+Using one fixed name prevents PIDs, task paths, variants, or artifact names from
+creating unbounded custom-value-name cardinality. Each JSON payload must validate
+against `schema/observation.schema.json` before publication.
+
+## Optional scalar indexes
+
+An index is redundant data optimized for numeric filtering:
+
+```text
+gbos.v1.index.<producer_slug>.<metric_name>.<aggregation> = <numeric string>
+```
+
+Example:
+
+```text
+gbos.v1.index.info_test_process.jvm.process.cpu.time.sum = 3.05
+```
+
+Rules:
+
+- `producer_slug` is the producer name with `-` and `.` converted to `_`.
+- Only build-level aggregates should be indexed.
+- Every index must be declared in `registry/develocity-indexes.json`.
+- The number is encoded without a unit; the metric registry defines its unit.
+- Do not add an index merely to reproduce every measurement. The observation is
+  canonical; indexes are query accelerators.
+
+This structure avoids a subtle collision: separate plugins can report the same
+metric, while producer-qualified index keys remain unique. Cross-producer SQL can
+still match `gbos.v1.index.%.jvm.process.cpu.time.sum`.
+
+## Tags
+
+GBOS tags use this grammar:
+
+```text
+gbos:v<major>:<domain>:<condition>
+```
+
+Examples: `gbos:v1:tests:near-oom`, `gbos:v1:tests:cpu-heavy`.
+
+Tags are for categorical filtering. Put thresholds in producer configuration and
+document them; do not encode threshold numbers in tag names.
+
+## Limits and truncation
+
+- Keep compact observation JSON below 90,000 characters, leaving safety margin
+  under Develocity's per-value limit used by the current plugins.
+- Reserve capacity for other build tooling. A producer should expose a configurable
+  observation budget rather than assume the entire per-build allowance.
+- Keep the most useful observations using a documented ordering. For process data,
+  descending CPU time is a reasonable default.
+- When data is dropped, emit one build-level observation with `partial: true`, set
+  `droppedObservations`, and include a diagnostic code such as
+  `gbos.limit.observations_dropped`.
+- Missing samples must use a diagnostic and omit unavailable measurements. Do not
+  synthesize zero values because zero is a valid measurement.
+
+## Suggested adapter boundary
+
+Each plugin should build GBOS observation objects first. Output adapters then:
+
+1. Render human tables from those objects.
+2. Serialize a report or NDJSON file.
+3. Serialize each observation into a Build Scan custom value.
+4. Derive only allowlisted scalar indexes from build-level observations.
+
+This ensures terminal, file, and Build Scan output cannot silently diverge.

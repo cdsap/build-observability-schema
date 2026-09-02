@@ -1,0 +1,21 @@
+{
+  "$schema": "../schema/develocity-projection.schema.json",
+  "schemaVersion": "1.0.0",
+  "customValues": [
+    {
+      "name": "gbos.v1.observation",
+      "value": "{\"schemaVersion\":\"1.0.0\",\"producer\":{\"name\":\"info-test-process\",\"version\":\"2.1.0\"},\"scope\":\"jvm.process\",\"aggregationScope\":\"entity\",\"attributes\":{\"process.pid\":13402,\"jvm.process.role\":\"test-worker\",\"gradle.task.path\":\":test\",\"jvm.gc.name\":\"G1\"},\"measurements\":[{\"name\":\"jvm.process.cpu.time\",\"value\":3.05,\"unit\":\"s\",\"aggregation\":\"sum\"},{\"name\":\"jvm.process.memory.heap.peak\",\"value\":150323855,\"unit\":\"By\",\"aggregation\":\"max\"}]}"
+    },
+    {
+      "name": "gbos.v1.index.info_test_process.jvm.process.cpu.time.sum",
+      "value": "3.05"
+    },
+    {
+      "name": "gbos.v1.index.info_test_process.jvm.process.memory.heap.peak.max",
+      "value": "150323855"
+    }
+  ],
+  "tags": [
+    "gbos:v1:tests:near-oom"
+  ]
+}

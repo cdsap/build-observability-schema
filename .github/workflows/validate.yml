@@ -1,0 +1,27 @@
+name: Validate schema
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install check-jsonschema
+      - name: Validate JSON Schema documents
+        run: check-jsonschema --check-metaschema schema/*.json
+      - name: Validate report examples
+        run: check-jsonschema --schemafile schema/report.schema.json examples/*.json
+      - name: Validate Develocity projection
+        run: check-jsonschema --schemafile schema/develocity-projection.schema.json develocity/*.json
+      - name: Validate semantic registry
+        run: python3 scripts/validate.py

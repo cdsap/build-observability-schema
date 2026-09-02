@@ -1,0 +1,44 @@
+{
+  "$schema": "../schema/report.schema.json",
+  "schemaVersion": "1.0.0",
+  "resource": {
+    "build.tool.name": "gradle"
+  },
+  "observations": [
+    {
+      "schemaVersion": "1.0.0",
+      "producer": {
+        "name": "gc-report",
+        "version": "0.1.0"
+      },
+      "scope": "jvm.gc",
+      "aggregationScope": "entity",
+      "attributes": {
+        "log.file.name": "gradle_gc.log",
+        "jvm.process.role": "gradle-daemon",
+        "jvm.gc.action": "Pause Young (Normal) (G1 Evacuation Pause)"
+      },
+      "measurements": [
+        {
+          "name": "jvm.gc.events",
+          "value": 8,
+          "unit": "{collection}",
+          "aggregation": "count"
+        }
+      ],
+      "histograms": [
+        {
+          "name": "jvm.gc.event.time",
+          "unit": "s",
+          "buckets": [
+            { "gte": 0, "lt": 1.23, "count": 4 },
+            { "gte": 1.23, "lt": 2.46, "count": 3 },
+            { "gte": 2.46, "lt": 3.69, "count": 4 },
+            { "gte": 3.69, "lt": 4.92, "count": 3 },
+            { "gte": 4.92, "count": 1 }
+          ]
+        }
+      ]
+    }
+  ]
+}

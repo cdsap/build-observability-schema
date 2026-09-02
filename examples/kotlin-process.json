@@ -1,0 +1,55 @@
+{
+  "$schema": "../schema/report.schema.json",
+  "schemaVersion": "1.0.0",
+  "resource": {
+    "build.tool.name": "gradle"
+  },
+  "observations": [
+    {
+      "schemaVersion": "1.0.0",
+      "producer": {
+        "name": "info-kotlin-process",
+        "version": "0.3.0"
+      },
+      "scope": "jvm.process",
+      "aggregationScope": "entity",
+      "attributes": {
+        "process.pid": 9011,
+        "jvm.process.role": "kotlin-daemon",
+        "jvm.gc.name": "G1"
+      },
+      "measurements": [
+        {
+          "name": "jvm.process.memory.heap.limit",
+          "value": 536870912,
+          "unit": "By",
+          "aggregation": "last"
+        },
+        {
+          "name": "jvm.process.memory.heap.used",
+          "value": 214748365,
+          "unit": "By",
+          "aggregation": "last"
+        },
+        {
+          "name": "jvm.process.memory.heap.committed",
+          "value": 536870912,
+          "unit": "By",
+          "aggregation": "last"
+        },
+        {
+          "name": "jvm.process.gc.time",
+          "value": 0,
+          "unit": "s",
+          "aggregation": "sum"
+        },
+        {
+          "name": "jvm.process.uptime",
+          "value": 0,
+          "unit": "s",
+          "aggregation": "last"
+        }
+      ]
+    }
+  ]
+}
