@@ -16,12 +16,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - run: pip install check-jsonschema
+      - run: pip install -r requirements.txt
       - name: Validate JSON Schema documents
         run: check-jsonschema --check-metaschema schema/*.json
       - name: Validate report examples
         run: check-jsonschema --schemafile schema/report.schema.json examples/*.json
       - name: Validate Develocity projection
         run: check-jsonschema --schemafile schema/develocity-projection.schema.json develocity/*.json
+      - name: Validate registries
+        run: |
+          check-jsonschema --schemafile schema/semantic-conventions.schema.json registry/semantic-conventions.json
+          check-jsonschema --schemafile schema/develocity-indexes.schema.json registry/develocity-indexes.json
       - name: Validate semantic registry
         run: python3 scripts/validate.py

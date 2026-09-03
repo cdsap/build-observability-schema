@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GBOS semantic conventions registry",
+  "type": "object",
+  "required": ["schemaVersion", "scopes", "metrics", "attributes"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri-reference"
+    },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/scope"
+      },
+      "minItems": 1
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/metric"
+      },
+      "minItems": 1
+    },
+    "attributes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/attribute"
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "maxLength": 255
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scope": {
+      "type": "object",
+      "required": ["name", "description"],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "description": {
+          "$ref": "#/$defs/description"
+        }
+      },
+      "additionalProperties": false
+    },
+    "metric": {
+      "type": "object",
+      "required": ["name", "unit", "type", "description", "allowedAggregations"],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "unit": {
+          "type": "string",
+          "pattern": "^[ -~]+$",
+          "maxLength": 63
+        },
+        "type": {
+          "enum": ["counter", "gauge", "histogram"]
+        },
+        "description": {
+          "$ref": "#/$defs/description"
+        },
+        "allowedAggregations": {
+          "type": "array",
+          "items": {
+            "enum": ["last", "min", "max", "sum", "count"]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "attributeValue": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" }
+      ]
+    },
+    "attribute": {
+      "type": "object",
+      "required": ["name", "type", "cardinality", "description"],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "type": {
+          "enum": ["string", "integer", "number", "boolean"]
+        },
+        "cardinality": {
+          "enum": ["low", "medium", "high"]
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/attributeValue"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "description": {
+          "$ref": "#/$defs/description"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

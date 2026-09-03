@@ -100,9 +100,12 @@ python3 scripts/validate.py
 For full JSON Schema validation, install `check-jsonschema` and run:
 
 ```bash
+python3 -m pip install -r requirements.txt
 check-jsonschema --check-metaschema schema/*.json
 check-jsonschema --schemafile schema/report.schema.json examples/*.json
 check-jsonschema --schemafile schema/develocity-projection.schema.json develocity/*.json
+check-jsonschema --schemafile schema/semantic-conventions.schema.json registry/semantic-conventions.json
+check-jsonschema --schemafile schema/develocity-indexes.schema.json registry/develocity-indexes.json
 ```
 
 ## Versioning

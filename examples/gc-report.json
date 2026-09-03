@@ -30,6 +30,7 @@
         {
           "name": "jvm.gc.event.time",
           "unit": "s",
+          "aggregation": "count",
           "buckets": [
             { "gte": 0, "lt": 1.23, "count": 4 },
             { "gte": 1.23, "lt": 2.46, "count": 3 },

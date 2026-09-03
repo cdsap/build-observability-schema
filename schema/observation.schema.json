@@ -85,17 +85,7 @@
       "oneOf": [
         { "type": "string" },
         { "type": "number" },
-        { "type": "boolean" },
-        {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              { "type": "string" },
-              { "type": "number" },
-              { "type": "boolean" }
-            ]
-          }
-        }
+        { "type": "boolean" }
       ]
     },
     "attributes": {
@@ -132,7 +122,7 @@
     },
     "histogram": {
       "type": "object",
-      "required": ["name", "unit", "buckets"],
+      "required": ["name", "unit", "aggregation", "buckets"],
       "properties": {
         "name": {
           "type": "string",
@@ -143,6 +133,9 @@
           "type": "string",
           "pattern": "^[ -~]+$",
           "maxLength": 63
+        },
+        "aggregation": {
+          "enum": ["count"]
         },
         "buckets": {
           "type": "array",
