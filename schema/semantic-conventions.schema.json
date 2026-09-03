@@ -118,7 +118,65 @@
           "$ref": "#/$defs/description"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "string" }
+            }
+          },
+          "then": {
+            "properties": {
+              "values": {
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "integer" }
+            }
+          },
+          "then": {
+            "properties": {
+              "values": {
+                "items": { "type": "integer" }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "number" }
+            }
+          },
+          "then": {
+            "properties": {
+              "values": {
+                "items": { "type": "number" }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "boolean" }
+            }
+          },
+          "then": {
+            "properties": {
+              "values": {
+                "items": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

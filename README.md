@@ -97,15 +97,17 @@ The repository's CI validates all JSON Schemas and examples. Locally:
 python3 scripts/validate.py
 ```
 
-For full JSON Schema validation, install `check-jsonschema` and run:
+For full JSON Schema validation, use an isolated virtual environment and run:
 
 ```bash
+python3 -m venv .venv
+. .venv/bin/activate
 python3 -m pip install -r requirements.txt
-check-jsonschema --check-metaschema schema/*.json
-check-jsonschema --schemafile schema/report.schema.json examples/*.json
-check-jsonschema --schemafile schema/develocity-projection.schema.json develocity/*.json
-check-jsonschema --schemafile schema/semantic-conventions.schema.json registry/semantic-conventions.json
-check-jsonschema --schemafile schema/develocity-indexes.schema.json registry/develocity-indexes.json
+.venv/bin/check-jsonschema --check-metaschema schema/*.json
+.venv/bin/check-jsonschema --schemafile schema/report.schema.json examples/*.json
+.venv/bin/check-jsonschema --schemafile schema/develocity-projection.schema.json develocity/*.json
+.venv/bin/check-jsonschema --schemafile schema/semantic-conventions.schema.json registry/semantic-conventions.json
+.venv/bin/check-jsonschema --schemafile schema/develocity-indexes.schema.json registry/develocity-indexes.json
 ```
 
 ## Versioning

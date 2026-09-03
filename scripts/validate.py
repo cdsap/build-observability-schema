@@ -38,6 +38,15 @@ def is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
+def matches_declared_type(value: Any, declared_type: str) -> bool:
+    return {
+        "string": isinstance(value, str),
+        "integer": isinstance(value, int) and not isinstance(value, bool),
+        "number": is_number(value),
+        "boolean": isinstance(value, bool),
+    }.get(declared_type, False)
+
+
 def producer_slug(name: str) -> str:
     return name.replace("-", "_").replace(".", "_")
 
@@ -52,13 +61,7 @@ def validate_attribute_value(
     require(name in attributes, f"{source}: unregistered attribute {name!r}")
     declared = attributes[name]
     declared_type = declared["type"]
-    valid_type = {
-        "string": isinstance(value, str),
-        "integer": isinstance(value, int) and not isinstance(value, bool),
-        "number": is_number(value),
-        "boolean": isinstance(value, bool),
-    }.get(declared_type, False)
-    require(valid_type, f"{source}: attribute {name!r} must be {declared_type}")
+    require(matches_declared_type(value, declared_type), f"{source}: attribute {name!r} must be {declared_type}")
     if "values" in declared:
         require(value in declared["values"], f"{source}: invalid value {value!r} for {name!r}")
 
@@ -80,6 +83,12 @@ def parse_numeric_string(value: Any, source: str) -> float:
         raise ValidationError(f"{source}: index value is not numeric") from exc
     require(is_number(number), f"{source}: index value must be finite")
     return number
+
+
+def index_identity(name: str) -> tuple[str, str, str]:
+    match = INDEX.fullmatch(name)
+    require(match is not None, f"{name!r}: invalid index name")
+    return match.group("producer"), match.group("metric"), match.group("aggregation")
 
 
 def validate_observation(
@@ -207,6 +216,10 @@ def validate_registry(registry: dict[str, Any]) -> tuple[dict[str, dict[str, Any
         require(attribute.get("cardinality") in {"low", "medium", "high"}, f"{where}: invalid cardinality")
         values = attribute.get("values")
         require(values is None or isinstance(values, list), f"{where}: values must be an array")
+        if values is not None:
+            for value_index, value in enumerate(values):
+                require(matches_declared_type(value, attribute["type"]),
+                        f"{where}.values[{value_index}]: value must be {attribute['type']}")
         attributes[name] = attribute
 
     return metrics, attributes, scopes
@@ -216,11 +229,11 @@ def validate_index_registry(
     registry: dict[str, Any],
     metrics: dict[str, dict[str, Any]],
     scopes: set[str],
-) -> set[str]:
+) -> dict[str, dict[str, Any]]:
     require(registry.get("schemaVersion") == "1.0.0", "develocity index registry: invalid schemaVersion")
     indexes = registry.get("indexes")
     require(isinstance(indexes, list), "develocity index registry: indexes must be an array")
-    index_names: set[str] = set()
+    index_definitions: dict[str, dict[str, Any]] = {}
     for index, item in enumerate(indexes):
         where = f"develocity index registry.indexes[{index}]"
         require(isinstance(item, dict), f"{where}: must be an object")
@@ -230,8 +243,8 @@ def validate_index_registry(
         scope = item.get("scope")
         aggregation = item.get("aggregation")
         require(isinstance(name, str), f"{where}: name is required")
-        require(name not in index_names, f"develocity index registry: duplicate name {name!r}")
-        index_names.add(name)
+        require(name not in index_definitions, f"develocity index registry: duplicate name {name!r}")
+        index_definitions[name] = item
         match = INDEX.fullmatch(name)
         require(match is not None, f"{where}: invalid index name")
         require(isinstance(producer, str) and producer, f"{where}: producer is required")
@@ -242,7 +255,7 @@ def validate_index_registry(
         require(aggregation in metrics[metric]["allowedAggregations"], f"{where}: aggregation not allowed for {metric!r}")
         require(match.group("aggregation") == aggregation, f"{where}: aggregation does not match name")
         require(item.get("aggregationScope") == "build", f"{where}: aggregationScope must be 'build'")
-    return index_names
+    return index_definitions
 
 
 def main() -> int:
@@ -264,19 +277,36 @@ def main() -> int:
             validate_observation(observation, f"{path.name}.observations[{index}]", metrics, attributes, scopes)
             observation_count += 1
 
-    index_names = validate_index_registry(load(ROOT / "registry" / "develocity-indexes.json"), metrics, scopes)
+    index_definitions = validate_index_registry(load(ROOT / "registry" / "develocity-indexes.json"), metrics, scopes)
 
     projection = load(ROOT / "develocity" / "custom-values.json")
     require(isinstance(projection.get("customValues"), list), "customValues: customValues must be an array")
+    build_measurements: dict[tuple[str, str, str], float] = {}
+    projected_indexes: list[tuple[int, str, Any]] = []
     for index, item in enumerate(projection["customValues"]):
         require(isinstance(item, dict), f"customValues[{index}]: must be an object")
-        name = item["name"]
-        value = item["value"]
+        name = item.get("name")
+        value = item.get("value")
+        require(isinstance(name, str), f"customValues[{index}]: name is required")
         if name == "gbos.v1.observation":
-            validate_observation(parse_observation_json(value, f"customValues[{index}]"), f"customValues[{index}]", metrics, attributes, scopes)
+            require(isinstance(value, str), f"customValues[{index}]: observation value must be a string")
+            observation = parse_observation_json(value, f"customValues[{index}]")
+            validate_observation(observation, f"customValues[{index}]", metrics, attributes, scopes)
+            if observation["aggregationScope"] == "build":
+                producer = producer_slug(observation["producer"]["name"])
+                for measurement in observation.get("measurements", []):
+                    build_measurements[(producer, measurement["name"], measurement["aggregation"])] = measurement["value"]
         else:
-            require(name in index_names, f"customValues[{index}]: undeclared index {name!r}")
-            parse_numeric_string(value, f"customValues[{index}]")
+            projected_indexes.append((index, name, value))
+
+    for index, name, value in projected_indexes:
+        require(name in index_definitions, f"customValues[{index}]: undeclared index {name!r}")
+        number = parse_numeric_string(value, f"customValues[{index}]")
+        identity = index_identity(name)
+        require(identity in build_measurements,
+                f"customValues[{index}]: index has no matching build-level observation measurement")
+        require(math.isclose(number, build_measurements[identity], rel_tol=0, abs_tol=1e-12),
+                f"customValues[{index}]: index value does not match build-level observation measurement")
 
     print(f"Validated {observation_count} report observations and {len(projection['customValues'])} custom values.")
     return 0
