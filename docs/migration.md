@@ -8,6 +8,27 @@ Adopt GBOS with one compatibility release per plugin:
 4. Mark legacy keys deprecated in the release notes.
 5. Remove them only in the next plugin major version.
 
+## Shared observation batches
+
+Batch envelopes are an additive transport optimization. Existing producers may
+continue emitting self-contained `gbos.v1.observation` values, and older
+consumers can ignore the new `gbos.v1.observations` name while processing the
+standalone values. A producer adopting batches should:
+
+1. Group only observations from the same producer version and schema version.
+2. Put `schemaVersion` and `producer` in the batch header exactly once.
+3. Omit those fields from every child observation; child attributes and
+   measurements remain independent records.
+4. Expand the header into each child when adapting a batch for a consumer that
+   requires the self-contained observation contract.
+5. Continue deriving `gbos.v1.index.*` values from build-level observations,
+   whether they came from a standalone value or a batch.
+
+Mixed deployments are supported: a build may contain standalone and batched
+values, but a single custom-value name must not carry both an observation object
+and a batch object. Use `gbos.v1.observation` for one observation and
+`gbos.v1.observations` for one batch.
+
 ## AndroidArtifactsSizeReport
 
 | Current | GBOS |

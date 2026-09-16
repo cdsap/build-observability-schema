@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Build Observability Observation Batch",
+  "description": "A transport envelope for observations that share schema and producer metadata.",
+  "type": "object",
+  "required": ["schemaVersion", "producer", "observations"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri-reference"
+    },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "producer": {
+      "$ref": "observation.schema.json#/$defs/producer"
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/observation"
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "observation": {
+      "type": "object",
+      "required": ["scope", "aggregationScope", "attributes"],
+      "properties": {
+        "scope": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "maxLength": 255
+        },
+        "aggregationScope": {
+          "enum": ["entity", "task", "project", "build"]
+        },
+        "attributes": {
+          "$ref": "observation.schema.json#/$defs/attributes"
+        },
+        "measurements": {
+          "type": "array",
+          "items": {
+            "$ref": "observation.schema.json#/$defs/measurement"
+          },
+          "minItems": 1
+        },
+        "histograms": {
+          "type": "array",
+          "items": {
+            "$ref": "observation.schema.json#/$defs/histogram"
+          },
+          "minItems": 1
+        },
+        "partial": {
+          "type": "boolean",
+          "default": false
+        },
+        "droppedObservations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "observation.schema.json#/$defs/diagnostic"
+          },
+          "uniqueItems": true
+        }
+      },
+      "anyOf": [
+        { "required": ["measurements"] },
+        { "required": ["histograms"] }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

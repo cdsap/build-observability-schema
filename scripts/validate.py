@@ -97,10 +97,16 @@ def validate_observation(
     metrics: dict[str, dict[str, Any]],
     attributes: dict[str, dict[str, Any]],
     scopes: set[str],
+    inherited_metadata: dict[str, Any] | None = None,
 ) -> None:
-    require(observation.get("schemaVersion") == "1.0.0", f"{source}: invalid schemaVersion")
-    producer = observation.get("producer")
-    require(isinstance(producer, dict), f"{source}: producer must be an object")
+    if inherited_metadata is None:
+        require(observation.get("schemaVersion") == "1.0.0", f"{source}: invalid schemaVersion")
+        producer = observation.get("producer")
+        require(isinstance(producer, dict), f"{source}: producer must be an object")
+    else:
+        require("schemaVersion" not in observation, f"{source}: schemaVersion belongs in the batch header")
+        require("producer" not in observation, f"{source}: producer belongs in the batch header")
+        producer = inherited_metadata["producer"]
     require(isinstance(producer.get("name"), str) and producer["name"], f"{source}: producer.name is required")
     require(isinstance(producer.get("version"), str) and producer["version"], f"{source}: producer.version is required")
 
@@ -172,6 +178,27 @@ def validate_observation(
     require(isinstance(dropped, int) and dropped >= 0, f"{source}: invalid droppedObservations")
     require(dropped == 0 or observation.get("partial") is True,
             f"{source}: droppedObservations requires partial=true")
+
+
+def validate_observation_batch(
+    batch: dict[str, Any],
+    source: str,
+    metrics: dict[str, dict[str, Any]],
+    attributes: dict[str, dict[str, Any]],
+    scopes: set[str],
+) -> list[dict[str, Any]]:
+    require(batch.get("schemaVersion") == "1.0.0", f"{source}: invalid schemaVersion")
+    producer = batch.get("producer")
+    require(isinstance(producer, dict), f"{source}: producer must be an object")
+    require(isinstance(producer.get("name"), str) and producer["name"], f"{source}: producer.name is required")
+    require(isinstance(producer.get("version"), str) and producer["version"], f"{source}: producer.version is required")
+    observations = batch.get("observations")
+    require(isinstance(observations, list) and observations, f"{source}: observations must be non-empty")
+    metadata = {"schemaVersion": batch["schemaVersion"], "producer": producer}
+    for index, observation in enumerate(observations):
+        require(isinstance(observation, dict), f"{source}.observations[{index}]: must be an object")
+        validate_observation(observation, f"{source}.observations[{index}]", metrics, attributes, scopes, metadata)
+    return observations
 
 
 def validate_registry(registry: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], set[str]]:
@@ -272,10 +299,19 @@ def main() -> int:
         for attribute, value in report["resource"].items():
             validate_attribute_value(attribute, value, attributes, path.name)
         observations = report.get("observations")
-        require(isinstance(observations, list) and observations, f"{path.name}: observations must be non-empty")
-        for index, observation in enumerate(observations):
-            validate_observation(observation, f"{path.name}.observations[{index}]", metrics, attributes, scopes)
-            observation_count += 1
+        if observations is not None:
+            require(isinstance(observations, list) and observations, f"{path.name}: observations must be non-empty")
+            for index, observation in enumerate(observations):
+                validate_observation(observation, f"{path.name}.observations[{index}]", metrics, attributes, scopes)
+                observation_count += 1
+        batches = report.get("observationBatches")
+        if batches is not None:
+            require(isinstance(batches, list) and batches, f"{path.name}: observationBatches must be non-empty")
+            for index, batch in enumerate(batches):
+                observations = validate_observation_batch(
+                    batch, f"{path.name}.observationBatches[{index}]", metrics, attributes, scopes
+                )
+                observation_count += len(observations)
 
     index_definitions = validate_index_registry(load(ROOT / "registry" / "develocity-indexes.json"), metrics, scopes)
 
@@ -288,14 +324,22 @@ def main() -> int:
         name = item.get("name")
         value = item.get("value")
         require(isinstance(name, str), f"customValues[{index}]: name is required")
-        if name == "gbos.v1.observation":
+        if name in {"gbos.v1.observation", "gbos.v1.observations"}:
             require(isinstance(value, str), f"customValues[{index}]: observation value must be a string")
-            observation = parse_observation_json(value, f"customValues[{index}]")
-            validate_observation(observation, f"customValues[{index}]", metrics, attributes, scopes)
-            if observation["aggregationScope"] == "build":
-                producer = producer_slug(observation["producer"]["name"])
-                for measurement in observation.get("measurements", []):
-                    build_measurements[(producer, measurement["name"], measurement["aggregation"])] = measurement["value"]
+            parsed = parse_observation_json(value, f"customValues[{index}]")
+            if name == "gbos.v1.observation":
+                validate_observation(parsed, f"customValues[{index}]", metrics, attributes, scopes)
+                observations_with_producers = [(parsed["producer"]["name"], parsed)]
+            else:
+                observations = validate_observation_batch(
+                    parsed, f"customValues[{index}]", metrics, attributes, scopes
+                )
+                observations_with_producers = [(parsed["producer"]["name"], observation) for observation in observations]
+            for producer_name, observation in observations_with_producers:
+                if observation["aggregationScope"] == "build":
+                    producer = producer_slug(producer_name)
+                    for measurement in observation.get("measurements", []):
+                        build_measurements[(producer, measurement["name"], measurement["aggregation"])] = measurement["value"]
         else:
             projected_indexes.append((index, name, value))
 

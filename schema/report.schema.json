@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Build Observability Report",
   "type": "object",
-  "required": ["schemaVersion", "resource", "observations"],
+  "required": ["schemaVersion", "resource"],
   "properties": {
     "$schema": {
       "type": "string",
@@ -30,7 +30,18 @@
         "$ref": "observation.schema.json"
       },
       "minItems": 1
+    },
+    "observationBatches": {
+      "type": "array",
+      "items": {
+        "$ref": "observation-batch.schema.json"
+      },
+      "minItems": 1
     }
   },
+  "anyOf": [
+    { "required": ["observations"] },
+    { "required": ["observationBatches"] }
+  ],
   "additionalProperties": false
 }

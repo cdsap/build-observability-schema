@@ -6,3 +6,5 @@
 - Define the Develocity custom-value projection and scalar index convention.
 - Register metrics and attributes used by the five initial Gradle plugins.
 - Add examples, migration mappings, query recipes, and semantic validation.
+- Add the additive shared-header observation batch envelope and its Develocity
+  projection name, `gbos.v1.observations`.
