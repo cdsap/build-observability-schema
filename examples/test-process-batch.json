@@ -1,0 +1,45 @@
+{
+  "$schema": "../schema/report.schema.json",
+  "schemaVersion": "1.0.0",
+  "resource": {
+    "build.tool.name": "gradle"
+  },
+  "observationBatches": [
+    {
+      "schemaVersion": "1.0.0",
+      "producer": {
+        "name": "info-test-process",
+        "version": "2.1.0"
+      },
+      "observations": [
+        {
+          "scope": "jvm.process",
+          "aggregationScope": "entity",
+          "attributes": {
+            "process.pid": 67018,
+            "jvm.process.role": "test-worker",
+            "gradle.task.path": ":core:domain:testProdDebugUnitTest",
+            "gradle.test.executor": "Gradle Test Executor 3",
+            "jvm.gc.name": "G1"
+          },
+          "measurements": [
+            { "name": "jvm.process.cpu.time", "value": 2.71, "unit": "s", "aggregation": "sum" },
+            { "name": "jvm.process.memory.heap.peak", "value": 139586437, "unit": "By", "aggregation": "max" }
+          ]
+        },
+        {
+          "scope": "jvm.process",
+          "aggregationScope": "build",
+          "attributes": {
+            "jvm.process.role": "test-worker"
+          },
+          "measurements": [
+            { "name": "jvm.process.cpu.cores", "value": 4.47, "unit": "{core}", "aggregation": "max" },
+            { "name": "jvm.process.cpu.time", "value": 5.38, "unit": "s", "aggregation": "sum" },
+            { "name": "jvm.process.memory.heap.peak", "value": 139586437, "unit": "By", "aggregation": "max" }
+          ]
+        }
+      ]
+    }
+  ]
+}

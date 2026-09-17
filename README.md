@@ -43,13 +43,37 @@ Every producer emits one or more self-contained observations:
 }
 ```
 
-The same object is used in both output paths:
+The same observation object is used in both output paths. Producers may also
+group observations that share metadata in an additive batch envelope:
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "producer": { "name": "info-test-process", "version": "2.1.0" },
+  "observations": [
+    {
+      "scope": "jvm.process",
+      "aggregationScope": "entity",
+      "attributes": { "process.pid": 13402 },
+      "measurements": [
+        { "name": "jvm.process.cpu.time", "value": 3.05, "unit": "s", "aggregation": "sum" }
+      ]
+    }
+  ]
+}
+```
+
+The batch header supplies `schemaVersion` and `producer` for every child. Child
+observations must not repeat or override those fields. Batches are transport
+envelopes; standalone observations remain canonical and self-contained.
+
+The same object is used in the output paths:
 
 | Sink | Representation |
 |---|---|
-| JSON file | A report envelope containing `observations[]` |
-| Terminal / streaming | One compact observation per line (NDJSON) |
-| Develocity | Custom value name `gbos.v1.observation`; value is the compact observation JSON |
+| JSON file | A report envelope containing `observations[]` or `observationBatches[]` |
+| Terminal / streaming | One compact observation per line (NDJSON), or one batch envelope where supported |
+| Develocity | `gbos.v1.observation` for one observation, or `gbos.v1.observations` for one batch envelope |
 | Develocity fast filter | Optional scalar `gbos.v1.index.<producer>.<metric>.<aggregation>` |
 
 ## Design rules
@@ -64,8 +88,9 @@ The same object is used in both output paths:
    Segment words use `snake_case`.
 5. **Aggregation is explicit.** `last`, `min`, `max`, `sum`, or `count` is
    separate from the metric name.
-6. **Every observation identifies its producer and schema version.** It remains
-   meaningful when copied out of a report or Build Scan.
+6. **Every standalone observation identifies its producer and schema version.**
+   A batch identifies them once in its header; adapters expand child records
+   into standalone observations when a consumer requires self-contained values.
 7. **Partial data is visible.** Set `partial`, `droppedObservations`, and/or
    `diagnostics`; never represent missing measurements as zero.
 
@@ -77,6 +102,7 @@ smaller than OTLP.
 
 ```text
 schema/                         JSON Schema 2020-12 contracts
+                                observation-batch.schema.json defines shared-header batches
 registry/semantic-conventions.json
                                 Allowed scopes, metrics, units, and attributes
 registry/develocity-indexes.json
