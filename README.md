@@ -136,6 +136,27 @@ python3 -m pip install -r requirements.txt
 .venv/bin/check-jsonschema --schemafile schema/develocity-indexes.schema.json registry/develocity-indexes.json
 ```
 
+## JVM artifact
+
+The schemas and registries are also packaged as a resource-only Maven artifact
+for producer tests and CI. The initial development version is:
+
+```text
+io.github.cdsap:build-observability-schema:0.0.1
+```
+
+It is not a runtime dependency of producer plugins. To build and inspect the
+artifact locally:
+
+```bash
+./gradlew verifyArtifactLayout
+./gradlew publishToMavenLocal
+```
+
+The artifact contains `schema/*.schema.json` and `registry/*.json`. Consumer
+repositories should use it with `testImplementation` and validate generated
+documents with a JSON Schema validator appropriate for their language.
+
 ## Versioning
 
 - `schemaVersion` uses semantic versioning.
