@@ -166,7 +166,8 @@ documents with a JSON Schema validator appropriate for their language.
 - A producer may dual-publish v1 and a future v2 for one deprecation window.
 
 See [migration](docs/migration.md), [Develocity projection](docs/develocity-projection.md),
-and [query examples](docs/querying.md).
+and [query examples](docs/querying.md). See [releasing](docs/releasing.md) for
+artifact versioning and the tag-triggered Maven Central workflow.
 
 ## License
 

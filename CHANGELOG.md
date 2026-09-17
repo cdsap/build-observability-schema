@@ -8,3 +8,5 @@
 - Add examples, migration mappings, query recipes, and semantic validation.
 - Add the additive shared-header observation batch envelope and its Develocity
   projection name, `gbos.v1.observations`.
+- Define tag-based Maven Central publication and distinguish artifact, schema,
+  and Develocity key versions.
