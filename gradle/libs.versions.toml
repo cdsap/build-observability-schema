@@ -1,0 +1,5 @@
+[versions]
+mavenPublish = "0.37.0"
+
+[plugins]
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }

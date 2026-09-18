@@ -2,24 +2,13 @@ plugins {
     `java-library`
     `maven-publish`
     signing
+    alias(libs.plugins.maven.publish)
 }
 
 group = "io.github.cdsap"
-version = providers.gradleProperty("gbosVersion")
-    .orElse(providers.environmentVariable("GBOS_VERSION"))
-    .orElse("0.0.1")
-    .get()
-
-check(Regex("^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$").matches(version.toString())) {
-    "gbosVersion must be a semantic version, got $version"
-}
+version = "0.0.1"
 
 description = "Gradle Build Observability Schema contract resources"
-
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
 
 tasks.named<ProcessResources>("processResources") {
     from("schema") {
@@ -65,56 +54,41 @@ val verifyArtifactLayout = tasks.register("verifyArtifactLayout") {
     }
 }
 
-publishing {
-    repositories {
-        maven {
-            name = "central"
-            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
-            credentials {
-                username = providers.environmentVariable("MAVEN_CENTRAL_USERNAME").orNull
-                password = providers.environmentVariable("MAVEN_CENTRAL_PASSWORD").orNull
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+    coordinates("io.github.cdsap", "build-observability-schema", "0.0.1")
+
+    pom {
+        name.set("Gradle Build Observability Schema")
+        description.set(project.description)
+        url.set("https://github.com/cdsap/build-observability-schema")
+        licenses {
+            license {
+                name.set("The MIT License (MIT)")
+                url.set("https://opensource.org/licenses/MIT")
+                distribution.set("repo")
             }
         }
-    }
-
-    publications {
-        create<MavenPublication>("gbos") {
-            from(components["java"])
-            artifactId = "build-observability-schema"
-
-            pom {
-                name.set("Gradle Build Observability Schema")
-                description.set(project.description)
-                url.set("https://github.com/cdsap/build-observability-schema")
-                licenses {
-                    license {
-                        name.set("The MIT License (MIT)")
-                        url.set("https://opensource.org/licenses/MIT")
-                        distribution.set("repo")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:git://github.com/cdsap/build-observability-schema.git")
-                    developerConnection.set("scm:git:ssh://github.com/cdsap/build-observability-schema.git")
-                    url.set("https://github.com/cdsap/build-observability-schema")
-                }
-                developers {
-                    developer {
-                        id.set("cdsap")
-                        name.set("Inaki Villar")
-                    }
-                }
+        scm {
+            connection.set("scm:git:git://github.com/cdsap/build-observability-schema.git")
+            developerConnection.set("scm:git:ssh://github.com/cdsap/build-observability-schema.git")
+            url.set("https://github.com/cdsap/build-observability-schema")
+        }
+        developers {
+            developer {
+                id.set("cdsap")
+                name.set("Inaki Villar")
             }
         }
     }
 }
 
-val signingKey = providers.environmentVariable("MAVEN_CENTRAL_GPG_PRIVATE_KEY").orNull
-val signingPassword = providers.environmentVariable("MAVEN_CENTRAL_GPG_PASSWORD").orNull
-
-signing {
-    if (signingKey != null) {
-        useInMemoryPgpKeys(signingKey, signingPassword)
-        sign(publishing.publications["gbos"])
+if (extra.has("signing.keyId")) {
+    afterEvaluate {
+        configure<SigningExtension> {
+            val publishingExtension = extensions.getByName("publishing") as PublishingExtension
+            publishingExtension.publications.forEach { sign(it) }
+        }
     }
 }

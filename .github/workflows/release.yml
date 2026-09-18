@@ -3,25 +3,14 @@ name: Release GBOS artifact
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "v*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
-    env:
-      MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-      MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-      MAVEN_CENTRAL_GPG_PRIVATE_KEY: ${{ secrets.MAVEN_CENTRAL_GPG_PRIVATE_KEY }}
-      MAVEN_CENTRAL_GPG_PASSWORD: ${{ secrets.MAVEN_CENTRAL_GPG_PASSWORD }}
-      CENTRAL_STAGING_API: https://ossrh-staging-api.central.sonatype.com
-      CENTRAL_PUBLISHER_API: https://central.sonatype.com/api/v1/publisher
-      CENTRAL_NAMESPACE: io.github.cdsap
-      GROUP_PATH: io/github/cdsap
-      ARTIFACT_ID: build-observability-schema
-
     steps:
       - name: Check out release tag
         uses: actions/checkout@v4
@@ -32,7 +21,7 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Validate release inputs
+      - name: Validate release tag
         id: release
         shell: bash
         run: |
@@ -43,86 +32,21 @@ jobs:
             echo "Release tags must use v<major>.<minor>.<patch>; got $tag" >&2
             exit 1
           fi
-          for variable in MAVEN_CENTRAL_USERNAME MAVEN_CENTRAL_PASSWORD MAVEN_CENTRAL_GPG_PRIVATE_KEY MAVEN_CENTRAL_GPG_PASSWORD; do
-            if [[ -z "${!variable}" ]]; then
-              echo "$variable is required for a Maven Central release" >&2
-              exit 1
-            fi
-          done
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
-      - name: Build and validate the release artifact
-        run: ./gradlew clean verifyArtifactLayout -PgbosVersion="${{ steps.release.outputs.version }}"
-
-      - name: Reject an existing immutable version
-        shell: bash
-        run: |
-          set -euo pipefail
-          version="${{ steps.release.outputs.version }}"
-          pom_url="https://repo1.maven.org/maven2/${GROUP_PATH}/${ARTIFACT_ID}/${version}/${ARTIFACT_ID}-${version}.pom"
-          status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' "$pom_url")"
-          if [[ "$status" != "404" ]]; then
-            echo "Maven Central already returned HTTP $status for $pom_url" >&2
+          configured_version="$(sed -n 's/^version = "\(.*\)"$/\1/p' build.gradle.kts)"
+          if [[ "$configured_version" != "$version" ]]; then
+            echo "Tag $tag does not match build.gradle.kts version $configured_version" >&2
             exit 1
           fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Publish to the Central staging API
-        run: ./gradlew publish -PgbosVersion="${{ steps.release.outputs.version }}"
+      - name: Build release artifact
+        run: ./gradlew clean verifyArtifactLayout jar
 
-      - name: Transfer the staging repository to Central Publisher Portal
-        id: deployment
-        shell: bash
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          token="$(printf '%s:%s' "$MAVEN_CENTRAL_USERNAME" "$MAVEN_CENTRAL_PASSWORD" | base64 --wrap=0)"
-          curl --fail --silent --show-error --request POST \
-            --header "Authorization: Bearer $token" \
-            "$CENTRAL_STAGING_API/manual/upload/defaultRepository/$CENTRAL_NAMESPACE?publishing_type=portal_api"
-
-          for attempt in {1..20}; do
-            repositories="$(curl --fail --silent --show-error \
-              --header "Authorization: Bearer $token" \
-              "$CENTRAL_STAGING_API/manual/search/repositories?ip=client&profile_id=$CENTRAL_NAMESPACE&state=closed")"
-            deployment_id="$(jq -r '.repositories | map(select(.portal_deployment_id != null)) | last.portal_deployment_id // empty' <<< "$repositories")"
-            if [[ -n "$deployment_id" ]]; then
-              echo "deployment_id=$deployment_id" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            sleep 15
-          done
-          echo "Central did not expose a Portal deployment ID after the staging upload" >&2
-          exit 1
-
-      - name: Wait for Central publication
-        shell: bash
-        run: |
-          set -euo pipefail
-          token="$(printf '%s:%s' "$MAVEN_CENTRAL_USERNAME" "$MAVEN_CENTRAL_PASSWORD" | base64 --wrap=0)"
-          for attempt in {1..40}; do
-            response="$(curl --fail --silent --show-error --request POST \
-              --header "Authorization: Bearer $token" \
-              "$CENTRAL_PUBLISHER_API/status?id=${{ steps.deployment.outputs.deployment_id }}")"
-            state="$(jq -r '.deploymentState' <<< "$response")"
-            echo "Central deployment state: $state"
-            case "$state" in
-              PUBLISHED) exit 0 ;;
-              FAILED)
-                jq -r '.errors // "Central publication failed without details"' <<< "$response" >&2
-                exit 1
-                ;;
-            esac
-            sleep 15
-          done
-          echo "Central publication did not reach PUBLISHED within the polling window" >&2
-          exit 1
-
-      - name: Verify the published Maven Central files
-        shell: bash
-        run: |
-          set -euo pipefail
-          version="${{ steps.release.outputs.version }}"
-          base="https://repo1.maven.org/maven2/${GROUP_PATH}/${ARTIFACT_ID}/${version}/${ARTIFACT_ID}-${version}"
-          for suffix in pom jar sources.jar javadoc.jar; do
-            curl --fail --silent --show-error --retry 20 --retry-delay 15 --retry-all-errors \
-              --output /dev/null "$base.$suffix"
-          done
+          gh release create "${GITHUB_REF_NAME}" \
+            "build/libs/build-observability-schema-${{ steps.release.outputs.version }}.jar" \
+            --title "Release ${GITHUB_REF_NAME}" \
+            --generate-notes

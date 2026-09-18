@@ -153,9 +153,11 @@ artifact locally:
 ./gradlew publishToMavenLocal
 ```
 
-The artifact contains `schema/*.schema.json` and `registry/*.json`. Consumer
-repositories should use it with `testImplementation` and validate generated
-documents with a JSON Schema validator appropriate for their language.
+The Maven-local publication is signed, so the second command requires the
+signing properties described in [releasing](docs/releasing.md). The artifact
+contains `schema/*.schema.json` and `registry/*.json`. Consumer repositories
+should use it with `testImplementation` and validate generated documents with a
+JSON Schema validator appropriate for their language.
 
 ## Versioning
 
@@ -167,7 +169,7 @@ documents with a JSON Schema validator appropriate for their language.
 
 See [migration](docs/migration.md), [Develocity projection](docs/develocity-projection.md),
 and [query examples](docs/querying.md). See [releasing](docs/releasing.md) for
-artifact versioning and the tag-triggered Maven Central workflow.
+artifact versioning and the local Maven Central publication workflow.
 
 ## License
 
