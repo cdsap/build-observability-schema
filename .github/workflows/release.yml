@@ -40,7 +40,7 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Build release artifact
-        run: ./gradlew clean verifyArtifactLayout jar
+        run: ./gradlew clean verifyArtifactLayout verifyJavaTargetMetadata jar
 
       - name: Create GitHub release
         env:

@@ -4,9 +4,13 @@ GBOS has three intentionally separate version identifiers:
 
 | Identifier | Example | Meaning |
 |---|---|---|
-| Maven artifact version | `0.0.1` | Immutable distribution version for `io.github.cdsap:build-observability-schema` |
+| Maven artifact version | `0.0.2` | Immutable distribution version for `io.github.cdsap:build-observability-schema` |
 | GBOS schema version | `1.0.0` | Version of the JSON observation/report contract |
 | Develocity key major | `gbos.v1.*` | Stable custom-value and index namespace major |
+
+`0.0.1` is already published and immutable. It remains available for consumers
+that explicitly need it, but Java 17 Gradle consumers should use `0.0.2`, which
+publishes Java 17-compatible Gradle Module Metadata.
 
 An additive schema change can use a new Maven artifact version without changing
 the schema major or Develocity key major. Removing or changing the meaning of a
@@ -26,7 +30,7 @@ release-preparation change.
 3. Run the fail-closed preflight with the exact version:
 
    ```bash
-   ./scripts/preflight.sh 0.0.1
+   ./scripts/preflight.sh 0.0.2
    ```
 
 4. Publish and release directly through the Central Portal:
@@ -43,11 +47,11 @@ release-preparation change.
 5. Wait for the Central Portal deployment to reach `PUBLISHED`. Do not tag
    before that state is confirmed.
 6. Create and push an annotated tag matching `v<major>.<minor>.<patch>`, for
-   example `v0.0.1`:
+   example `v0.0.2`:
 
    ```bash
-   git tag -a v0.0.1 -m "Release GBOS 0.0.1"
-   git push origin v0.0.1
+   git tag -a v0.0.2 -m "Release GBOS 0.0.2"
+   git push origin v0.0.2
    ```
 
 7. The tag-only release workflow builds the exact tag and creates the GitHub
@@ -76,7 +80,7 @@ Producer projects should consume released versions as a test/CI dependency:
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.cdsap:build-observability-schema:0.0.1")
+    testImplementation("io.github.cdsap:build-observability-schema:0.0.2")
 }
 ```
 
