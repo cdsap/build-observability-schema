@@ -142,14 +142,14 @@ The schemas and registries are also packaged as a resource-only Maven artifact
 for producer tests and CI. The initial development version is:
 
 ```text
-io.github.cdsap:build-observability-schema:0.0.1
+io.github.cdsap:build-observability-schema:0.0.2
 ```
 
 It is not a runtime dependency of producer plugins. To build and inspect the
 artifact locally:
 
 ```bash
-./gradlew verifyArtifactLayout
+./gradlew verifyArtifactLayout verifyJavaTargetMetadata
 ./gradlew publishToMavenLocal
 ```
 

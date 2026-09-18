@@ -6,7 +6,13 @@ plugins {
 }
 
 group = "io.github.cdsap"
-version = "0.0.1"
+version = "0.0.2"
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
 
 description = "Gradle Build Observability Schema contract resources"
 
@@ -54,10 +60,22 @@ val verifyArtifactLayout = tasks.register("verifyArtifactLayout") {
     }
 }
 
+val verifyJavaTargetMetadata = tasks.register("verifyJavaTargetMetadata") {
+    dependsOn(tasks.named("generateMetadataFileForMavenPublication"))
+
+    doLast {
+        val metadata = layout.buildDirectory.file("publications/maven/module.json").get().asFile
+        check(metadata.isFile) { "Published Gradle Module Metadata was not generated: $metadata" }
+        check(metadata.readText().contains("\"org.gradle.jvm.version\": 17")) {
+            "Published Gradle Module Metadata must target Java 17: $metadata"
+        }
+    }
+}
+
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
-    coordinates("io.github.cdsap", "build-observability-schema", "0.0.1")
+    coordinates("io.github.cdsap", "build-observability-schema", "0.0.2")
 
     pom {
         name.set("Gradle Build Observability Schema")
