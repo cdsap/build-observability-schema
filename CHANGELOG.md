@@ -10,3 +10,6 @@
   projection name, `gbos.v1.observations`.
 - Define tag-based Maven Central publication and distinguish artifact, schema,
   and Develocity key versions.
+- Align Maven publication with the ProjectGenerator-style Vanniktech plugin,
+  explicit release versions, local preflight, and post-publication GitHub
+  release workflow.

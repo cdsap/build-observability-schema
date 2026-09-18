@@ -16,10 +16,33 @@ when a released artifact needs correction.
 
 ## Release process
 
-1. Merge the release changes to `main`.
-2. Confirm the `io.github.cdsap` namespace is verified in Maven Central and the
-   repository secrets below are configured.
-3. Create and push an annotated tag matching `v<major>.<minor>.<patch>`, for
+The Maven publication follows the same local, explicit-version approach as
+ProjectGenerator. The release version is configured in `build.gradle.kts` in
+both `version` and `mavenPublishing.coordinates`; update both in a dedicated
+release-preparation change.
+
+1. Merge the release-preparation change to `main`.
+2. Configure the Central Portal credentials and signing key locally.
+3. Run the fail-closed preflight with the exact version:
+
+   ```bash
+   ./scripts/preflight.sh 0.0.1
+   ```
+
+4. Publish and release directly through the Central Portal:
+
+   ```bash
+   ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache \
+     -PmavenCentralUsername="$USER_NAME" \
+     -PmavenCentralPassword="$central_password" \
+     -Psigning.keyId="$key_id" \
+     -Psigning.password="$signing_password" \
+     -Psigning.secretKeyRingFile="${GBOS_SIGNING_KEY_FILE:-$HOME/.gbos-release/secring.gpg}"
+   ```
+
+5. Wait for the Central Portal deployment to reach `PUBLISHED`. Do not tag
+   before that state is confirmed.
+6. Create and push an annotated tag matching `v<major>.<minor>.<patch>`, for
    example `v0.0.1`:
 
    ```bash
@@ -27,25 +50,29 @@ when a released artifact needs correction.
    git push origin v0.0.1
    ```
 
-4. The tag-only release workflow builds the exact tag, publishes it through the
-   Central Portal's Gradle-compatible staging API, transfers the staging
-   repository to the Portal API, and polls until the deployment is
-   `PUBLISHED`.
-5. The workflow then verifies the POM, main JAR, sources JAR, and Javadoc JAR
-   from Maven Central before succeeding.
+7. The tag-only release workflow builds the exact tag and creates the GitHub
+   release with the main artifact attached.
 
-The workflow does not run for pull requests or ordinary branch pushes. It fails
-before publication when the tag is not a release version, required credentials
-are absent, or the version already exists on Maven Central.
+The workflow does not publish to Maven Central and does not run for pull
+requests or ordinary branch pushes. `publishToMavenLocal` remains available for
+consumer development; it uses the same signing properties when signatures are
+enabled.
 
-## Required GitHub Actions secrets
+## Local release credentials
 
-- `MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD`: Central Portal user-token credentials.
-- `MAVEN_CENTRAL_GPG_PRIVATE_KEY`: ASCII-armored private signing key.
-- `MAVEN_CENTRAL_GPG_PASSWORD`: passphrase for that key.
+The preflight reads `~/.gbos-release/env` by default. Set `GBOS_RELEASE_ENV` to
+use another file. It requires these names, matching ProjectGenerator:
 
-The credentials are used only by the tag-triggered workflow. Producer projects
-should consume released versions as a test/CI dependency:
+- `USER_NAME`: Central Portal user-token username.
+- `central_password`: Central Portal user-token password.
+- `key_id`: signing key ID.
+- `signing_password`: signing key passphrase.
+
+The signing key is read from `~/.gbos-release/secring.gpg` by default. Set
+`GBOS_SIGNING_KEY_FILE` to use another file. Keep both files outside the
+repository and never commit their contents.
+
+Producer projects should consume released versions as a test/CI dependency:
 
 ```kotlin
 dependencies {
