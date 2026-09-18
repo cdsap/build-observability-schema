@@ -1,12 +1,25 @@
 plugins {
     `java-library`
     `maven-publish`
+    signing
 }
 
 group = "io.github.cdsap"
-version = "0.0.1"
+version = providers.gradleProperty("gbosVersion")
+    .orElse(providers.environmentVariable("GBOS_VERSION"))
+    .orElse("0.0.1")
+    .get()
+
+check(Regex("^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$").matches(version.toString())) {
+    "gbosVersion must be a semantic version, got $version"
+}
 
 description = "Gradle Build Observability Schema contract resources"
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
 
 tasks.named<ProcessResources>("processResources") {
     from("schema") {
@@ -53,6 +66,17 @@ val verifyArtifactLayout = tasks.register("verifyArtifactLayout") {
 }
 
 publishing {
+    repositories {
+        maven {
+            name = "central"
+            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
+            credentials {
+                username = providers.environmentVariable("MAVEN_CENTRAL_USERNAME").orNull
+                password = providers.environmentVariable("MAVEN_CENTRAL_PASSWORD").orNull
+            }
+        }
+    }
+
     publications {
         create<MavenPublication>("gbos") {
             from(components["java"])
@@ -82,5 +106,15 @@ publishing {
                 }
             }
         }
+    }
+}
+
+val signingKey = providers.environmentVariable("MAVEN_CENTRAL_GPG_PRIVATE_KEY").orNull
+val signingPassword = providers.environmentVariable("MAVEN_CENTRAL_GPG_PASSWORD").orNull
+
+signing {
+    if (signingKey != null) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign(publishing.publications["gbos"])
     }
 }
