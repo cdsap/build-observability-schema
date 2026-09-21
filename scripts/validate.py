@@ -319,17 +319,34 @@ def main() -> int:
     require(isinstance(projection.get("customValues"), list), "customValues: customValues must be an array")
     build_measurements: dict[tuple[str, str, str], float] = {}
     projected_indexes: list[tuple[int, str, Any]] = []
+    shared_headers: dict[str, str] = {}
     for index, item in enumerate(projection["customValues"]):
         require(isinstance(item, dict), f"customValues[{index}]: must be an object")
         name = item.get("name")
         value = item.get("value")
         require(isinstance(name, str), f"customValues[{index}]: name is required")
-        if name in {"gbos.v1.observation", "gbos.v1.observations"}:
+        if name in {"gbos.schema", "gbos.version", "gbos.producer"}:
+            require(isinstance(value, str) and value, f"customValues[{index}]: shared header must be a non-empty string")
+            require(name not in shared_headers, f"customValues[{index}]: duplicate shared header {name!r}")
+            shared_headers[name] = value
+        elif name in {"gbos.v1.observation", "gbos.v1.observations"}:
             require(isinstance(value, str), f"customValues[{index}]: observation value must be a string")
             parsed = parse_observation_json(value, f"customValues[{index}]")
             if name == "gbos.v1.observation":
-                validate_observation(parsed, f"customValues[{index}]", metrics, attributes, scopes)
-                observations_with_producers = [(parsed["producer"]["name"], parsed)]
+                if shared_headers:
+                    require(set(shared_headers) == {"gbos.schema", "gbos.version", "gbos.producer"},
+                            "shared GBOS headers must include schema, version, and producer")
+                    require(parsed.get("schemaVersion") is None and parsed.get("producer") is None,
+                            f"customValues[{index}]: shared-header observation must omit schemaVersion and producer")
+                    validate_observation(
+                        parsed, f"customValues[{index}]", metrics, attributes, scopes,
+                        inherited_metadata={"producer": {"name": shared_headers["gbos.producer"],
+                                                           "version": shared_headers["gbos.version"]}},
+                    )
+                    observations_with_producers = [(shared_headers["gbos.producer"], parsed)]
+                else:
+                    validate_observation(parsed, f"customValues[{index}]", metrics, attributes, scopes)
+                    observations_with_producers = [(parsed["producer"]["name"], parsed)]
             else:
                 observations = validate_observation_batch(
                     parsed, f"customValues[{index}]", metrics, attributes, scopes
@@ -351,6 +368,11 @@ def main() -> int:
                 f"customValues[{index}]: index has no matching build-level observation measurement")
         require(math.isclose(number, build_measurements[identity], rel_tol=0, abs_tol=1e-12),
                 f"customValues[{index}]: index value does not match build-level observation measurement")
+
+    if any(item["name"] == "gbos.v1.observation" for item in projection["customValues"]):
+        require(set(shared_headers) == {"gbos.schema", "gbos.version", "gbos.producer"},
+                "gbos.v1.observation values require exactly one shared schema, version, and producer header")
+        require(shared_headers["gbos.schema"] == "1.0.0", "gbos.schema must be 1.0.0")
 
     print(f"Validated {observation_count} report observations and {len(projection['customValues'])} custom values.")
     return 0

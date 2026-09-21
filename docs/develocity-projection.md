@@ -6,16 +6,27 @@ small, explicit set of scalar indexes for frequent filters.
 
 ## Canonical custom values
 
-Emit each standalone compact observation as:
+Emit shared metadata once per projection, then emit each headerless compact observation as:
 
 ```text
+name  = gbos.schema
+value = 1.0.0
+
+name  = gbos.version
+value = 0.0.3
+
+name  = gbos.producer
+value = info-test-process
+
 name  = gbos.v1.observation
-value = <compact JSON observation>
+value = <compact JSON observation fragment>
 ```
 
 Using one fixed name prevents PIDs, task paths, variants, or artifact names from
-creating unbounded custom-value-name cardinality. Each JSON payload must validate
-against `schema/observation.schema.json` before publication.
+creating unbounded custom-value-name cardinality. The three headers are emitted
+once when observations are present. Fragment JSON must validate against
+`schema/observation-fragment.schema.json` and omits `schemaVersion` and
+`producer`.
 
 When several observations share the same producer metadata, an adapter may emit
 one batch custom value instead:
@@ -37,9 +48,10 @@ compact JSON is 890 bytes as one batch versus 952 bytes after expanding the
 same records into two standalone observations, a 62-byte (6.5%) reduction.
 The saving grows with the number of records in a batch.
 
-`gbos.v1.observation` remains the compatibility-safe representation for one
-observation. A producer must not alternate between standalone and batch shapes
-under the same custom-value name.
+The shared-header representation is the preferred Develocity projection. The
+batch representation remains available for transports that carry one structured
+value. A producer must not alternate between fragment and batch shapes under the
+same custom-value name.
 
 ## Optional scalar indexes
 
