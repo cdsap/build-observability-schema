@@ -6,27 +6,29 @@ small, explicit set of scalar indexes for frequent filters.
 
 ## Canonical custom values
 
-Emit shared metadata once per projection, then emit each headerless compact observation as:
+Emit the schema header once per projection, then emit producer-scoped metadata and
+headerless compact observations:
 
 ```text
 name  = gbos.schema
 value = 1.0.0
 
-name  = gbos.version
-value = 0.0.3
+name  = gbos.v1.producer.info_test_process.version
+value = 0.0.4
 
-name  = gbos.producer
+name  = gbos.v1.producer.info_test_process.name
 value = info-test-process
 
-name  = gbos.v1.observation
+name  = gbos.v1.producer.info_test_process.observation
 value = <compact JSON observation fragment>
 ```
 
-Using one fixed name prevents PIDs, task paths, variants, or artifact names from
-creating unbounded custom-value-name cardinality. The three headers are emitted
-once when observations are present. Fragment JSON must validate against
-`schema/observation-fragment.schema.json` and omits `schemaVersion` and
-`producer`.
+`gbos.schema` is global and is emitted once. Each producer gets its own bounded
+namespace under `gbos.v1.producer.<producer_slug>`, so multiple plugins can
+publish observations in the same build without ambiguous producer metadata.
+Fragment JSON must validate against `schema/observation-fragment.schema.json` and
+omits `schemaVersion` and `producer`. The producer slug replaces `-` and `.` with
+`_`.
 
 When several observations share the same producer metadata, an adapter may emit
 one batch custom value instead:
@@ -48,7 +50,7 @@ compact JSON is 890 bytes as one batch versus 952 bytes after expanding the
 same records into two standalone observations, a 62-byte (6.5%) reduction.
 The saving grows with the number of records in a batch.
 
-The shared-header representation is the preferred Develocity projection. The
+The producer-scoped representation is the preferred Develocity projection. The
 batch representation remains available for transports that carry one structured
 value. A producer must not alternate between fragment and batch shapes under the
 same custom-value name.

@@ -17,7 +17,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "pattern": "^(gbos\\.(schema|version|producer)|gbos\\.v1\\.(observation|observations|index\\.[a-z0-9_]+\\.[a-z][a-z0-9_.]*\\.(last|min|max|sum|count)))$",
+            "pattern": "^(gbos\\.schema|gbos\\.v1\\.producer\\.[a-z0-9_]+\\.(name|version|observation)|gbos\\.v1\\.(observation|observations|index\\.[a-z0-9_]+\\.[a-z][a-z0-9_.]*\\.(last|min|max|sum|count)))$",
             "maxLength": 255
           },
           "value": {

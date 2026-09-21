@@ -31,12 +31,14 @@ and a batch object. Use `gbos.v1.observation` for one observation and
 
 ## Shared Develocity headers
 
-For Develocity custom values, prefer one shared header set per projection:
-`gbos.schema=1.0.0`, `gbos.version=<published artifact version>`, and
-`gbos.producer=<producer name>`. Emit each observation as a headerless
-`gbos.v1.observation` fragment and omit `schemaVersion` and `producer` from its
-JSON. A consumer combines the three headers with each fragment to construct the
-canonical standalone observation.
+For Develocity custom values, emit the global `gbos.schema=1.0.0` header once,
+then scope producer metadata and observations by producer slug:
+`gbos.v1.producer.<producer_slug>.name`,
+`gbos.v1.producer.<producer_slug>.version`, and
+`gbos.v1.producer.<producer_slug>.observation`. Observation fragments omit
+`schemaVersion` and `producer`; a consumer combines the global schema header and
+the producer-scoped name/version headers with each fragment. This allows several
+GBOS producers to publish in one build without ambiguous shared headers.
 
 ## AndroidArtifactsSizeReport
 

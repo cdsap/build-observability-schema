@@ -7,19 +7,19 @@
       "value": "1.0.0"
     },
     {
-      "name": "gbos.version",
-      "value": "0.0.3"
+      "name": "gbos.v1.producer.info_test_process.version",
+      "value": "0.0.4"
     },
     {
-      "name": "gbos.producer",
+      "name": "gbos.v1.producer.info_test_process.name",
       "value": "info-test-process"
     },
     {
-      "name": "gbos.v1.observation",
+      "name": "gbos.v1.producer.info_test_process.observation",
       "value": "{\"scope\":\"jvm.process\",\"aggregationScope\":\"entity\",\"attributes\":{\"process.pid\":13402,\"jvm.process.role\":\"test-worker\",\"gradle.task.path\":\":test\",\"jvm.gc.name\":\"G1\"},\"measurements\":[{\"name\":\"jvm.process.cpu.time\",\"value\":3.05,\"unit\":\"s\",\"aggregation\":\"sum\"},{\"name\":\"jvm.process.memory.heap.peak\",\"value\":150323855,\"unit\":\"By\",\"aggregation\":\"max\"}]}"
     },
     {
-      "name": "gbos.v1.observation",
+      "name": "gbos.v1.producer.info_test_process.observation",
       "value": "{\"scope\":\"jvm.process\",\"aggregationScope\":\"build\",\"attributes\":{\"jvm.process.role\":\"test-worker\"},\"measurements\":[{\"name\":\"jvm.process.cpu.time\",\"value\":3.05,\"unit\":\"s\",\"aggregation\":\"sum\"},{\"name\":\"jvm.process.memory.heap.peak\",\"value\":150323855,\"unit\":\"By\",\"aggregation\":\"max\"}]}"
     },
     {

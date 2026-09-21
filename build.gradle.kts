@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "io.github.cdsap"
-version = "0.0.3"
+version = "0.0.4"
 
 java {
     toolchain {
@@ -76,7 +76,7 @@ val verifyJavaTargetMetadata = tasks.register("verifyJavaTargetMetadata") {
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
-    coordinates("io.github.cdsap", "build-observability-schema", "0.0.3")
+    coordinates("io.github.cdsap", "build-observability-schema", "0.0.4")
 
     pom {
         name.set("Gradle Build Observability Schema")
