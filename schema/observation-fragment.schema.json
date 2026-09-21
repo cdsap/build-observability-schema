@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "observation-fragment.schema.json",
+  "title": "Build Observability Observation Fragment",
+  "description": "A headerless observation payload used with shared Develocity custom-value metadata.",
+  "type": "object",
+  "required": ["scope", "aggregationScope", "attributes"],
+  "properties": {
+    "scope": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$", "maxLength": 255 },
+    "aggregationScope": { "enum": ["entity", "task", "project", "build"] },
+    "attributes": { "$ref": "observation.schema.json#/$defs/attributes" },
+    "measurements": { "type": "array", "items": { "$ref": "observation.schema.json#/$defs/measurement" }, "minItems": 1 },
+    "histograms": { "type": "array", "items": { "$ref": "observation.schema.json#/$defs/histogram" }, "minItems": 1 },
+    "partial": { "type": "boolean", "default": false },
+    "droppedObservations": { "type": "integer", "minimum": 0 },
+    "diagnostics": { "type": "array", "items": { "$ref": "observation.schema.json#/$defs/diagnostic" }, "uniqueItems": true }
+  },
+  "anyOf": [
+    { "required": ["measurements"] },
+    { "required": ["histograms"] }
+  ],
+  "additionalProperties": false
+}

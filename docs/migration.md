@@ -29,6 +29,15 @@ values, but a single custom-value name must not carry both an observation object
 and a batch object. Use `gbos.v1.observation` for one observation and
 `gbos.v1.observations` for one batch.
 
+## Shared Develocity headers
+
+For Develocity custom values, prefer one shared header set per projection:
+`gbos.schema=1.0.0`, `gbos.version=<published artifact version>`, and
+`gbos.producer=<producer name>`. Emit each observation as a headerless
+`gbos.v1.observation` fragment and omit `schemaVersion` and `producer` from its
+JSON. A consumer combines the three headers with each fragment to construct the
+canonical standalone observation.
+
 ## AndroidArtifactsSizeReport
 
 | Current | GBOS |

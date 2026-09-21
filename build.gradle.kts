@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "io.github.cdsap"
-version = "0.0.2"
+version = "0.0.3"
 
 java {
     toolchain {
@@ -47,6 +47,7 @@ val verifyArtifactLayout = tasks.register("verifyArtifactLayout") {
         val expected = setOf(
             "schema/observation.schema.json",
             "schema/observation-batch.schema.json",
+            "schema/observation-fragment.schema.json",
             "schema/report.schema.json",
             "schema/develocity-projection.schema.json",
             "schema/semantic-conventions.schema.json",
@@ -75,7 +76,7 @@ val verifyJavaTargetMetadata = tasks.register("verifyJavaTargetMetadata") {
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
-    coordinates("io.github.cdsap", "build-observability-schema", "0.0.2")
+    coordinates("io.github.cdsap", "build-observability-schema", "0.0.3")
 
     pom {
         name.set("Gradle Build Observability Schema")
