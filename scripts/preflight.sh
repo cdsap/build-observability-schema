@@ -64,6 +64,6 @@ if [[ -z "$java_major" || "$java_major" -lt 17 ]]; then
   exit 1
 fi
 
-./gradlew clean verifyArtifactLayout verifyJavaTargetMetadata
+./gradlew clean verifyArtifactLayout verifyJavaTargetMetadata jar :core:build :core:jar
 
 echo "Release preflight passed for $tag"
