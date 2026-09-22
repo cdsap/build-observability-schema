@@ -48,6 +48,6 @@ jobs:
         run: |
           gh release create "${GITHUB_REF_NAME}" \
             "build/libs/build-observability-schema-${{ steps.release.outputs.version }}.jar" \
-            "core/build/libs/build-observability-core-${{ steps.release.outputs.version }}.jar" \
+            "core/build/libs/core-${{ steps.release.outputs.version }}.jar" \
             --title "Release ${GITHUB_REF_NAME}" \
             --generate-notes
