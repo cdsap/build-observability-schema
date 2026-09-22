@@ -30,7 +30,7 @@ declarations; update the root version in a dedicated release-preparation change.
 3. Run the fail-closed preflight with the exact version:
 
    ```bash
-   ./scripts/preflight.sh 0.0.2
+   ./scripts/preflight.sh 0.0.4
    ```
 
 4. Publish and release directly through the Central Portal:
@@ -48,11 +48,11 @@ declarations; update the root version in a dedicated release-preparation change.
    before both `io.github.cdsap:build-observability-schema` and
    `io.github.cdsap:build-observability-core` are confirmed published.
 6. Create and push an annotated tag matching `v<major>.<minor>.<patch>`, for
-   example `v0.0.2`:
+   example `v0.0.4`:
 
    ```bash
-   git tag -a v0.0.2 -m "Release GBOS 0.0.2"
-   git push origin v0.0.2
+   git tag -a v0.0.4 -m "Release GBOS 0.0.4"
+   git push origin v0.0.4
    ```
 
 7. The tag-only release workflow builds the exact tag and creates the GitHub
