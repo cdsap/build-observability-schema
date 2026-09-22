@@ -1,5 +1,12 @@
 [versions]
 mavenPublish = "0.37.0"
+kotlin = "2.4.20"
+serialization = "1.11.0"
 
 [plugins]
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
+[libraries]
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
