@@ -78,7 +78,7 @@ val verifyJavaTargetMetadata = tasks.register("verifyJavaTargetMetadata") {
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
-    coordinates("io.github.cdsap", "build-observability-schema", "0.0.4")
+    coordinates("io.github.cdsap", "build-observability-schema", "0.0.5")
 
     pom {
         name.set("Gradle Build Observability Schema")
