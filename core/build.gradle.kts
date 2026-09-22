@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "io.github.cdsap"
-version = rootProject.version
+version = "0.0.6"
 
 kotlin {
     jvmToolchain(17)
