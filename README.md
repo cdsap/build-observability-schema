@@ -159,6 +159,11 @@ contains `schema/*.schema.json` and `registry/*.json`. Consumer repositories
 should use it with `testImplementation` and validate generated documents with a
 JSON Schema validator appropriate for their language.
 
+An experimental `io.github.cdsap:build-observability-core` module is also built from this
+repository. It contains the shared typed observation model and JSON encoding mechanics; it
+is not yet part of the published contract artifact or a producer runtime dependency. Producer
+integration should follow an explicit core release and compatibility verification.
+
 ## Versioning
 
 - `schemaVersion` uses semantic versioning.

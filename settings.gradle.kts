@@ -11,3 +11,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "build-observability-schema"
+include(":core")
