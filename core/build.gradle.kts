@@ -16,6 +16,10 @@ dependencies {
     api(libs.kotlinx.serialization.json)
 }
 
+tasks.matching { it.name == "publishAndReleaseToMavenCentral" }.configureEach {
+    dependsOn(tasks.named("jar"))
+}
+
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
