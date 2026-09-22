@@ -4,13 +4,13 @@ GBOS has three intentionally separate version identifiers:
 
 | Identifier | Example | Meaning |
 |---|---|---|
-| Maven artifact version | `0.0.2` | Immutable distribution version for `io.github.cdsap:build-observability-schema` |
+| Maven artifact version | `0.0.4` | Immutable distribution version for `io.github.cdsap:build-observability-schema` and `io.github.cdsap:build-observability-core` |
 | GBOS schema version | `1.0.0` | Version of the JSON observation/report contract |
 | Develocity key major | `gbos.v1.*` | Stable custom-value and index namespace major |
 
-`0.0.1` is already published and immutable. It remains available for consumers
-that explicitly need it, but Java 17 Gradle consumers should use `0.0.2`, which
-publishes Java 17-compatible Gradle Module Metadata.
+Previous artifact versions are immutable. Java 17 Gradle consumers should use
+the release version configured in the root build, which publishes Java 17-compatible
+Gradle Module Metadata for both artifacts.
 
 An additive schema change can use a new Maven artifact version without changing
 the schema major or Develocity key major. Removing or changing the meaning of a
@@ -20,23 +20,23 @@ when a released artifact needs correction.
 
 ## Release process
 
-The Maven publication follows the same local, explicit-version approach as
-ProjectGenerator. The release version is configured in `build.gradle.kts` in
-both `version` and `mavenPublishing.coordinates`; update both in a dedicated
-release-preparation change.
+The Maven publications follow the same local, explicit-version approach as
+ProjectGenerator. The release version is configured in the root
+`build.gradle.kts` and is shared by both `mavenPublishing.coordinates`
+declarations; update the root version in a dedicated release-preparation change.
 
 1. Merge the release-preparation change to `main`.
 2. Configure the Central Portal credentials and signing key locally.
 3. Run the fail-closed preflight with the exact version:
 
    ```bash
-   ./scripts/preflight.sh 0.0.2
+   ./scripts/preflight.sh 0.0.4
    ```
 
 4. Publish and release directly through the Central Portal:
 
    ```bash
-   ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache \
+   ./gradlew publishAndReleaseToMavenCentral :core:publishAndReleaseToMavenCentral --no-configuration-cache \
      -PmavenCentralUsername="$USER_NAME" \
      -PmavenCentralPassword="$central_password" \
      -Psigning.keyId="$key_id" \
@@ -44,18 +44,19 @@ release-preparation change.
      -Psigning.secretKeyRingFile="${GBOS_SIGNING_KEY_FILE:-$HOME/.gbos-release/secring.gpg}"
    ```
 
-5. Wait for the Central Portal deployment to reach `PUBLISHED`. Do not tag
-   before that state is confirmed.
+5. Wait for both Central Portal deployments to reach `PUBLISHED`. Do not tag
+   before both `io.github.cdsap:build-observability-schema` and
+   `io.github.cdsap:build-observability-core` are confirmed published.
 6. Create and push an annotated tag matching `v<major>.<minor>.<patch>`, for
-   example `v0.0.2`:
+   example `v0.0.4`:
 
    ```bash
-   git tag -a v0.0.2 -m "Release GBOS 0.0.2"
-   git push origin v0.0.2
+   git tag -a v0.0.4 -m "Release GBOS 0.0.4"
+   git push origin v0.0.4
    ```
 
 7. The tag-only release workflow builds the exact tag and creates the GitHub
-   release with the main artifact attached.
+   release with both Maven artifacts attached.
 
 The workflow does not publish to Maven Central and does not run for pull
 requests or ordinary branch pushes. `publishToMavenLocal` remains available for
@@ -80,8 +81,11 @@ Producer projects should consume released versions as a test/CI dependency:
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.cdsap:build-observability-schema:0.0.2")
+    testImplementation("io.github.cdsap:build-observability-schema:0.0.4")
+    implementation("io.github.cdsap:build-observability-core:0.0.4")
 }
 ```
 
-The artifact is not a runtime dependency of producer plugins.
+The schema artifact is not a runtime dependency of producer plugins. The core
+artifact is an optional runtime dependency for producers that adopt its shared
+model and encoding API.

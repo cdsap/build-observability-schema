@@ -39,8 +39,8 @@ jobs:
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Build release artifact
-        run: ./gradlew clean verifyArtifactLayout verifyJavaTargetMetadata jar
+      - name: Build release artifacts
+        run: ./gradlew clean verifyArtifactLayout verifyJavaTargetMetadata jar :core:build :core:jar
 
       - name: Create GitHub release
         env:
@@ -48,5 +48,6 @@ jobs:
         run: |
           gh release create "${GITHUB_REF_NAME}" \
             "build/libs/build-observability-schema-${{ steps.release.outputs.version }}.jar" \
+            "core/build/libs/build-observability-core-${{ steps.release.outputs.version }}.jar" \
             --title "Release ${GITHUB_REF_NAME}" \
             --generate-notes

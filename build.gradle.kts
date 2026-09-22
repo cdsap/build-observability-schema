@@ -3,6 +3,8 @@ plugins {
     `maven-publish`
     signing
     alias(libs.plugins.maven.publish)
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
 }
 
 group = "io.github.cdsap"
