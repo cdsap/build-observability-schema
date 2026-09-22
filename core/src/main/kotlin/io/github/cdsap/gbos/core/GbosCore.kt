@@ -80,7 +80,16 @@ object GbosJson {
             }
         })
         if (observation.measurements.isNotEmpty()) {
-            put("measurements", json.encodeToJsonElement(observation.measurements))
+            put("measurements", buildJsonArray {
+                observation.measurements.forEach { measurement ->
+                    add(buildJsonObject {
+                        put("name", measurement.name)
+                        put("value", jsonNumber(measurement.value))
+                        put("unit", measurement.unit)
+                        put("aggregation", measurement.aggregation)
+                    })
+                }
+            })
         }
         if (observation.partial) put("partial", true)
         observation.droppedObservations?.let { put("droppedObservations", it) }
