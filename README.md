@@ -11,6 +11,7 @@ The first adopters are:
 - [InfoKotlinProcess](https://github.com/cdsap/InfoKotlinProcess)
 - [GCReport](https://github.com/cdsap/GCReport)
 - [InfoTestProcess](https://github.com/cdsap/InfoTestProcess)
+- [build-observability-client](https://github.com/cdsap/build-observability-client)
 
 Status: **proposal / v1.0.0 draft**. Existing keys can be dual-published during migration.
 
