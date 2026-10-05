@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "io.github.cdsap"
-version = "0.0.6"
+version = "0.0.7"
 
 kotlin {
     jvmToolchain(17)
@@ -14,6 +14,17 @@ kotlin {
 
 dependencies {
     api(libs.kotlinx.serialization.json)
+    testImplementation(libs.junit)
+    testImplementation(libs.json.schema.validator)
+}
+
+tasks.named<ProcessResources>("processTestResources") {
+    from(rootProject.layout.projectDirectory.dir("schema")) {
+        into("schema")
+    }
+    from(rootProject.layout.projectDirectory.dir("registry")) {
+        into("registry")
+    }
 }
 
 tasks.matching { it.name == "publishAndReleaseToMavenCentral" }.configureEach {
@@ -23,7 +34,7 @@ tasks.matching { it.name == "publishAndReleaseToMavenCentral" }.configureEach {
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
-    coordinates("io.github.cdsap", "build-observability-core", rootProject.version.toString())
+    coordinates("io.github.cdsap", "build-observability-core", version.toString())
 
     pom {
         name.set("Gradle Build Observability Core")

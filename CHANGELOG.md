@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased (build-observability-core 0.0.7)
+
+- Add `GbosDevelocity.publish`, a Gradle-free implementation of the
+  producer-scoped Develocity projection and registered scalar indexes.
+- Define the core artifact version once in `core/build.gradle.kts` and use it
+  for the core Maven coordinates.
+
 ## 1.0.0-draft.1
 
 - Define the observation and report contracts.
