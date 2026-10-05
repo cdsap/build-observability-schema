@@ -82,6 +82,34 @@ This structure avoids a subtle collision: separate plugins can report the same
 metric, while producer-qualified index keys remain unique. Cross-producer SQL can
 still match `gbos.v1.index.%.jvm.process.cpu.time.sum`.
 
+## Shared publisher
+
+`io.github.cdsap:build-observability-core` (0.0.7 and later) implements the
+producer-scoped projection and the registered scalar indexes in
+`io.github.cdsap.gbos.core.GbosDevelocity`. It has no Gradle or Develocity
+dependency; adapt its sink to the Build Scan API:
+
+```kotlin
+GbosDevelocity.publish(
+    sink = { key, value -> buildScan.value(key, value) },
+    schemaVersion = "1.0.0",
+    producerName = "info-test-process",
+    producerVersion = "0.0.4",
+    observations = observations,
+    indexes = listOf(
+        GbosIndex("jvm.process.cpu.cores", "max"),
+        GbosIndex("jvm.process.cpu.time", "sum"),
+        GbosIndex("jvm.process.memory.heap.peak", "max"),
+    ),
+)
+```
+
+It emits `gbos.schema`, the producer `.version` and `.name`, one `.observation`
+per observation in input order (encoded with `GbosJson.encodeFragment`), then
+the requested indexes from the single build-level observation. An empty
+observation list emits nothing. Pass only indexes declared in
+`registry/develocity-indexes.json`.
+
 ## Tags
 
 GBOS tags use this grammar:

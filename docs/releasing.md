@@ -4,7 +4,8 @@ GBOS has three intentionally separate version identifiers:
 
 | Identifier | Example | Meaning |
 |---|---|---|
-| Maven artifact version | `0.0.4` | Immutable distribution version for `io.github.cdsap:build-observability-schema` and `io.github.cdsap:build-observability-core` |
+| Schema artifact version | `0.0.4` | Immutable distribution version for `io.github.cdsap:build-observability-schema`, set in the root `build.gradle.kts` |
+| Core artifact version | `0.0.7` | Immutable distribution version for `io.github.cdsap:build-observability-core`, set in `core/build.gradle.kts` and independent of the schema artifact version |
 | GBOS schema version | `1.0.0` | Version of the JSON observation/report contract |
 | Develocity key major | `gbos.v1.*` | Stable custom-value and index namespace major |
 
@@ -21,9 +22,12 @@ when a released artifact needs correction.
 ## Release process
 
 The Maven publications follow the same local, explicit-version approach as
-ProjectGenerator. The release version is configured in the root
-`build.gradle.kts` and is shared by both `mavenPublishing.coordinates`
-declarations; update the root version in a dedicated release-preparation change.
+ProjectGenerator. The schema version is configured in the root
+`build.gradle.kts` and the core version in `core/build.gradle.kts`; update
+the version you release in a dedicated release-preparation change. The tag
+release below covers the schema artifact; the GitHub release also attaches the
+core jar at whatever version `core/build.gradle.kts` declares. To release core
+alone, see [Releasing build-observability-core alone](#releasing-build-observability-core-alone).
 
 1. Merge the release-preparation change to `main`.
 2. Configure the Central Portal credentials and signing key locally.
@@ -62,6 +66,35 @@ The workflow does not publish to Maven Central and does not run for pull
 requests or ordinary branch pushes. `publishToMavenLocal` remains available for
 consumer development; it uses the same signing properties when signatures are
 enabled.
+
+## Releasing build-observability-core alone
+
+Core changes (for example the shared `GbosDevelocity` publisher) do not need a
+schema release. `scripts/preflight.sh` only checks the schema version, so run
+the core checks directly:
+
+1. Merge the change that sets `version` in `core/build.gradle.kts`.
+2. Verify core:
+
+   ```bash
+   ./gradlew :core:check :core:generatePomFileForMavenPublication
+   ```
+
+   Confirm `core/build/publications/maven/pom-default.xml` declares the new version.
+3. Publish core only:
+
+   ```bash
+   ./gradlew :core:publishAndReleaseToMavenCentral --no-configuration-cache \
+     -PmavenCentralUsername="$USER_NAME" \
+     -PmavenCentralPassword="$central_password" \
+     -Psigning.keyId="$key_id" \
+     -Psigning.password="$signing_password" \
+     -Psigning.secretKeyRingFile="${GBOS_SIGNING_KEY_FILE:-$HOME/.gbos-release/secring.gpg}"
+   ```
+
+4. Wait for the Central Portal deployment to reach `PUBLISHED`, then confirm it
+   resolves from Maven Central with `--refresh-dependencies` before any producer
+   release depends on it. No tag is created for a core-only release.
 
 ## Local release credentials
 
